@@ -206,7 +206,10 @@ class MilightIBox:
                              self.ibox_seq, 0x00]) + light_command + bytearray([checksum])
 
             send_seq = self.ibox_seq
-            self.ibox_seq += 1
+            if self.ibox_seq == 0xFF:
+                self.ibox_seq = 0x0
+            else:
+                self.ibox_seq += 0x01
 
             self.socket_send(cmd)
             data = self.socket_recv()
@@ -368,7 +371,7 @@ class MilightIBox:
             print("Send color temperature %dK zone %d..." % (color_temperature, zone))
 
         # Calculate color temperature byte
-        ct = int((color_temperature - 2700) / ((6500-2700)/100))
+        ct = int((color_temperature - 2700) / ((6500-2700)/100)) & 0xFF
 
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x05, ct, 0x00, 0x00, 0x00, zone, 0x00]))
