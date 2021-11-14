@@ -100,7 +100,7 @@ class MilightIBox:
         line = msg
         for b in data:
             line += "%02X " % b
-        print line
+        print(line)
 
     # ----------------------------------------------------------------------------------------------
     # Milight iBox2 functions
