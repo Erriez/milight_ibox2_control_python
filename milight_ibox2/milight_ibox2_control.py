@@ -7,6 +7,10 @@ import time
 
 
 class MilightIBox:
+    BRIDGE_TYPE = 0x00
+    WALLWASHER_TYPE = 0x07
+    RGBWW_TYPE = 0x08  # Default lamp type for RGB/WW/CCT
+
     def __init__(self, ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=False):
         """ Milight iBox2 constructor
         :param ibox_ip: IP address of the iBox2
@@ -226,21 +230,10 @@ class MilightIBox:
 
                 break
 
-    @staticmethod
-    def get_lamp_type(bridge_lamp):
-        """ Get lamp type in command
-        :param bridge_lamp: 0=all, 1..4
-        :return: bridge_lamp: 0x00, else 0x08 for RGB/WW/CCT
-        """
-        if bridge_lamp:
-            return 0x00
-        else:
-            return 0x08
-
-    def send_light_on(self, zone, bridge_lamp=False):
+    def send_light_on(self, zone, lamp_type=RGBWW_TYPE):
         """ Turn light on
         :param zone: 0=all, 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (zone < 0) or (zone > 4):
@@ -249,13 +242,13 @@ class MilightIBox:
 
         if self.verbose:
             print("Send light on zone %d..." % zone)
-        self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x04, 0x01, 0x00, 0x00, 0x00, zone, 0x00]))
 
-    def send_light_off(self, zone, bridge_lamp=False):
+    def send_light_off(self, zone, lamp_type=RGBWW_TYPE):
         """ Turn light off
         :param zone: 0=all, 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (zone < 0) or (zone > 4):
@@ -264,13 +257,13 @@ class MilightIBox:
 
         if self.verbose:
             print("Send light off zone %d..." % zone)
-        self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x04, 0x02, 0x00, 0x00, 0x00, zone, 0x00]))
 
-    def send_night_light_on(self, zone, bridge_lamp=False):
+    def send_night_light_on(self, zone, lamp_type=RGBWW_TYPE):
         """ Turn night light on
         :param zone: 0=all, 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (zone < 0) or (zone > 4):
@@ -279,13 +272,13 @@ class MilightIBox:
 
         if self.verbose:
             print("Send night light on zone %d..." % zone)
-        self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x04, 0x05, 0x00, 0x00, 0x00, zone, 0x00]))
 
-    def send_white_light_on(self, zone, bridge_lamp=False):
+    def send_white_light_on(self, zone, lamp_type=RGBWW_TYPE):
         """ Turn white on, RGB off
         :param zone: 0=all, 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (zone < 0) or (zone > 4):
@@ -294,14 +287,14 @@ class MilightIBox:
 
         if self.verbose:
             print("Send white light on (RGB off) zone %d..." % zone)
-        self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x05, 0x64, 0x00, 0x00, 0x00, zone, 0x00]))
 
-    def send_rgb_color(self, rgb, zone, bridge_lamp=False):
+    def send_rgb_color(self, rgb, zone, lamp_type=RGBWW_TYPE):
         """ Set RGB color
         :param rgb: 0x00..0xff
         :param zone: 0=all, 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (rgb < 0) or (rgb > 0xff):
@@ -313,14 +306,14 @@ class MilightIBox:
 
         if self.verbose:
             print("Send RGB color 0x%02X zone %d..." % (rgb, zone))
-        self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x01, rgb, rgb, rgb, rgb, zone, 0x00]))
 
-    def send_saturation(self, saturation, zone, bridge_lamp=False):
+    def send_saturation(self, saturation, zone, lamp_type=RGBWW_TYPE):
         """ Set saturation when RGB is on
         :param saturation: 0..100
         :param zone: 0=all, 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (zone < 0) or (zone > 100):
@@ -332,14 +325,14 @@ class MilightIBox:
 
         if self.verbose:
             print("Send saturation %d%% zone %d..." % (saturation, zone))
-        self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x02, saturation, 0x00, 0x00, 0x00, zone, 0x00]))
 
-    def send_brightness(self, brightness, zone, bridge_lamp=False):
+    def send_brightness(self, brightness, zone, lamp_type=RGBWW_TYPE):
         """ Set color temperature
         :param brightness: 0..100 (Note: 0 is not off)
         :param zone: 0=all, 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (brightness < 0) or (brightness > 100):
@@ -351,14 +344,14 @@ class MilightIBox:
 
         if self.verbose:
             print("Send brightness %d%% zone %d..." % (brightness, zone))
-        self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x03, brightness, 0x00, 0x00, 0x00, zone, 0x00]))
 
-    def send_color_temperature(self, color_temperature, zone, bridge_lamp=False):
+    def send_color_temperature(self, color_temperature, zone, lamp_type=RGBWW_TYPE):
         """ Set color temperature
         :param color_temperature: 2700..6500
         :param zone: 0=all, 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (color_temperature < 2700) or (color_temperature > 6500):
@@ -371,14 +364,14 @@ class MilightIBox:
         # Calculate color temperature byte
         ct = (color_temperature - 2700) / ((6500-2700)/100) & 0xFF
 
-        self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x05, ct, 0x00, 0x00, 0x00, zone, 0x00]))
 
-    def send_mode(self, mode, zone, bridge_lamp=False):
+    def send_mode(self, mode, zone, lamp_type=RGBWW_TYPE):
         """ Decrease speed when light is in mode 1..9
         :param mode: 1..9 (Blink/flash/glow etc)
         :param zone: 0=all, 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (mode < 1) or (mode > 9):
@@ -390,13 +383,13 @@ class MilightIBox:
 
         if self.verbose:
             print("Send mode %d zone %d..." % (mode, zone))
-        self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x06, mode, 0x00, 0x00, 0x00, zone, 0x00]))
 
-    def send_mode_speed_decrease(self, zone, bridge_lamp=False):
+    def send_mode_speed_decrease(self, zone, lamp_type=RGBWW_TYPE):
         """ Decrease speed when light is in mode 1..9
         :param zone: 0=all, 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (zone < 0) or (zone > 4):
@@ -405,13 +398,13 @@ class MilightIBox:
 
         if self.verbose:
             print("Send mode speed-- zone %d..." % zone)
-        self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x04, 0x04, 0x00, 0x00, 0x00, zone, 0x00]))
 
-    def send_mode_speed_increase(self, zone, bridge_lamp=False):
+    def send_mode_speed_increase(self, zone, lamp_type=RGBWW_TYPE):
         """ Increase speed when light is in mode 1..9
         :param zone: 0=all, 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (zone < 0) or (zone > 4):
@@ -420,14 +413,14 @@ class MilightIBox:
 
         if self.verbose:
             print("Send mode speed++ zone %d..." % zone)
-        self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x04, 0x03, 0x00, 0x00, 0x00, zone, 0x00]))
 
-    def send_link(self, zone, bridge_lamp=False):
+    def send_link(self, zone, lamp_type=RGBWW_TYPE):
         """ Link light
             Send this command within 3 seconds after connecting the light to the main power
         :param zone: 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (zone < 0) or (zone > 4):
@@ -436,14 +429,14 @@ class MilightIBox:
 
         if self.verbose:
             print("Send link zone %d..." % zone)
-        self.send_command(bytearray([0x3D, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x3D, 0x00, 0x00, lamp_type,
                                      0x00, 0x00, 0x00, 0x00, 0x00, zone, 0x00]))
 
-    def send_unlink(self, zone, bridge_lamp=False):
+    def send_unlink(self, zone, lamp_type=RGBWW_TYPE):
         """ Unlink light
             Send this command within 3 seconds after connecting the light to the main power
         :param zone: 1..4
-        :param bridge_lamp: True or False
+        :param lamp_type: 0: Bridge, 7: Wallwasher, 8: RGB/WW/CCT (default)
         :return: None
         """
         if (zone < 0) or (zone > 4):
@@ -452,5 +445,5 @@ class MilightIBox:
 
         if self.verbose:
             print("Send link zone %d..." % zone)
-        self.send_command(bytearray([0x3E, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
+        self.send_command(bytearray([0x3E, 0x00, 0x00, lamp_type,
                                      0x00, 0x00, 0x00, 0x00, 0x00, zone, 0x00]))
