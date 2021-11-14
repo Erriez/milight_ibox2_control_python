@@ -5,7 +5,11 @@ from milight_ibox2.milight_ibox2_control import MilightIBox
 
 
 ibox_ip = "10.10.100.254"
+ibox_port = 5987
+ibox_timeout = 2
+ibox_retries = 5
 verbose = False
+lamp_type = MilightIBox.RGBWW_TYPE
 zone = 0
 
 
@@ -16,7 +20,8 @@ class TestMilightIBox(unittest.TestCase):
     def test_connect_disconnect(self):
         print("Testing connect/disconnect...")
 
-        ibox = MilightIBox(ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=verbose)
+        ibox = MilightIBox(ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
+                           verbose=verbose)
         self.assertEqual(ibox.is_connected(), False)
         ibox.connect()
         self.assertEqual(ibox.is_connected(), True)
@@ -26,8 +31,8 @@ class TestMilightIBox(unittest.TestCase):
     def test_timeout(self):
         print("Testing timeout...")
 
-        ibox = MilightIBox(ibox_ip="192.168.0.1", ibox_port=5987, sock_timeout=2, tx_retries=5,
-                           verbose=verbose)
+        ibox = MilightIBox(ibox_ip="192.168.0.1", ibox_port=ibox_port, sock_timeout=ibox_timeout,
+                           tx_retries=ibox_retries, verbose=verbose)
         self.assertEqual(ibox.is_connected(), False)
         ibox.connect()
         self.assertEqual(ibox.is_connected(), False)
@@ -35,7 +40,8 @@ class TestMilightIBox(unittest.TestCase):
 
     def test_light_on_off(self):
         print("Testing on/off...")
-        ibox = MilightIBox(ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=verbose)
+        ibox = MilightIBox(ibox_ip,
+                           ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries, verbose=verbose)
         ibox.connect()
         ibox.send_light_on(zone)
         ibox.send_white_light_on(zone)
@@ -62,7 +68,8 @@ class TestMilightIBox(unittest.TestCase):
     def test_light_brightness(self):
         print("Testing brightness...")
 
-        ibox = MilightIBox(ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=verbose)
+        ibox = MilightIBox(ibox_ip,
+                           ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries, verbose=verbose)
         ibox.connect()
         ibox.send_light_on(zone)
         ibox.send_white_light_on(zone)
@@ -92,7 +99,8 @@ class TestMilightIBox(unittest.TestCase):
     def test_color_temperature(self):
         print("Testing color temperature...")
 
-        ibox = MilightIBox(ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=verbose)
+        ibox = MilightIBox(ibox_ip,
+                           ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries, verbose=verbose)
         ibox.connect()
         ibox.send_light_on(zone)
         ibox.send_white_light_on(zone)
@@ -119,7 +127,8 @@ class TestMilightIBox(unittest.TestCase):
     def test_rgb(self):
         print("Testing RGB...")
 
-        ibox = MilightIBox(ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=verbose)
+        ibox = MilightIBox(ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
+                           verbose=verbose)
         ibox.connect()
         ibox.send_light_on(zone)
         ibox.send_brightness(75, zone)
@@ -154,7 +163,8 @@ class TestMilightIBox(unittest.TestCase):
     def test_mode(self):
         print("Testing mode...")
 
-        ibox = MilightIBox(ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=verbose)
+        ibox = MilightIBox(ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
+                           verbose=verbose)
         ibox.connect()
         ibox.send_light_on(zone)
         ibox.send_brightness(75, zone)
@@ -170,7 +180,8 @@ class TestMilightIBox(unittest.TestCase):
     def test_zones(self):
         print("Testing zones...")
 
-        ibox = MilightIBox(ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=verbose)
+        ibox = MilightIBox(ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
+                           verbose=verbose)
         ibox.connect()
 
         ibox.send_light_off(0)

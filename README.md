@@ -141,31 +141,44 @@ $ python3 setup.py install
 ## Usage
 
 ```python
-import milight_ibox2
+from milight_ibox2.milight_ibox2_control import MilightIBox
+
+# Configure iBox IP address, for example:
+ibox_ip = "10.10.100.254"
 
 # Create object
-ibox = MilightIBox(ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=verbose)
+ibox = MilightIBox(ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=False)
+
+# Specify optional lamp types:
+#   LampType.BRIDGE_TYPE = 0x00
+#   LampType.WALLWASHER_TYPE = 0x07
+#   LampType.RGBWW_TYPE = 0x08  # Default lamp type for RGB/WW/CCT
+# Or specify a different lamp type number.
+lamp_type = MilightIBox.RGBWW_TYPE
+
+# Set zone: 0=all, 1..4
+zone = 0
 
 # Connect
 ibox.connect()
 
 # Send light on (zone 0=all, 1..4)
-ibox.send_light_on(zone)
+ibox.send_light_on(zone, lamp_type)
 
 # Send white on
-ibox.send_white_light_on(zone)
+ibox.send_white_light_on(zone, lamp_type)
 
 # Send brightness 75%
-ibox.send_brightness(75, zone)
+ibox.send_brightness(75, zone, lamp_type)
 
 # Send color temperature 2700K
-ibox.send_color_temperature(2700, zone)
+ibox.send_color_temperature(2700, zone, lamp_type)
 
 # Send light off
-ibox.send_light_off(zone)
+ibox.send_light_off(zone, lamp_type)
 
 # Disconnect
-ibox.connect()
+ibox.disconnect()
 ```
 
 
