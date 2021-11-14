@@ -100,7 +100,7 @@ class MilightIBox:
         line = msg
         for b in data:
             line += "%02X " % b
-        print line
+        print (line)
 
     # ----------------------------------------------------------------------------------------------
     # Milight iBox2 functions
@@ -368,7 +368,7 @@ class MilightIBox:
             print("Send color temperature %dK zone %d..." % (color_temperature, zone))
 
         # Calculate color temperature byte
-        ct = (color_temperature - 2700) / ((6500-2700)/100)
+        ct = int((color_temperature - 2700) / ((6500-2700)/100))
 
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x05, ct, 0x00, 0x00, 0x00, zone, 0x00]))
