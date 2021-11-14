@@ -56,7 +56,7 @@ class MilightIBox:
         except socket.timeout:
             print("Error: TX timeout")
         except Exception as ex:
-            print(("Error: ", ex))
+            print("Error: ", ex)
 
     def socket_recv(self, bufsize=1024):
         """ Receive synchronous data from UDP socket """
@@ -69,7 +69,7 @@ class MilightIBox:
             print("Error: RX timeout")
             return
         except Exception as ex:
-            print(("Error: ", ex))
+            print("Error: ", ex)
             return
 
         if self.verbose:
@@ -129,7 +129,7 @@ class MilightIBox:
                 if retry == 0:
                     print("TX start session...")
                 else:
-                    print(("TX retry %d..." % retry))
+                    print("TX retry %d..." % retry)
             self.socket_send(cmd_start_session)
             data = self.socket_recv()
             if data:
@@ -199,7 +199,7 @@ class MilightIBox:
                 if retry == 0:
                     print("TX start session...")
                 else:
-                    print(("TX retry %d..." % retry))
+                    print("TX retry %d..." % retry)
 
             cmd = bytearray([0x80, 0x00, 0x00, 0x00, 0x11,
                              self.ibox_session_id1, self.ibox_session_id2, 0x00,
@@ -247,7 +247,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send light on zone %d..." % zone))
+            print("Send light on zone %d..." % zone)
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x04, 0x01, 0x00, 0x00, 0x00, zone, 0x00]))
 
@@ -262,7 +262,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send light off zone %d..." % zone))
+            print("Send light off zone %d..." % zone)
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x04, 0x02, 0x00, 0x00, 0x00, zone, 0x00]))
 
@@ -277,7 +277,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send night light on zone %d..." % zone))
+            print("Send night light on zone %d..." % zone)
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x04, 0x05, 0x00, 0x00, 0x00, zone, 0x00]))
 
@@ -292,7 +292,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send white light on (RGB off) zone %d..." % zone))
+            print("Send white light on (RGB off) zone %d..." % zone)
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x05, 0x64, 0x00, 0x00, 0x00, zone, 0x00]))
 
@@ -311,7 +311,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send RGB color 0x%02X zone %d..." % (rgb, zone)))
+            print("Send RGB color 0x%02X zone %d..." % (rgb, zone))
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x01, rgb, rgb, rgb, rgb, zone, 0x00]))
 
@@ -330,7 +330,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send saturation %d%% zone %d..." % (saturation, zone)))
+            print("Send saturation %d%% zone %d..." % (saturation, zone))
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x02, saturation, 0x00, 0x00, 0x00, zone, 0x00]))
 
@@ -349,7 +349,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send brightness %d%% zone %d..." % (brightness, zone)))
+            print("Send brightness %d%% zone %d..." % (brightness, zone))
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x03, brightness, 0x00, 0x00, 0x00, zone, 0x00]))
 
@@ -365,7 +365,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send color temperature %dK zone %d..." % (color_temperature, zone)))
+            print("Send color temperature %dK zone %d..." % (color_temperature, zone))
 
         # Calculate color temperature byte
         ct = (color_temperature - 2700) / ((6500-2700)/100)
@@ -388,7 +388,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send mode %d zone %d..." % (mode, zone)))
+            print("Send mode %d zone %d..." % (mode, zone))
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x06, mode, 0x00, 0x00, 0x00, zone, 0x00]))
 
@@ -403,7 +403,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send mode speed-- zone %d..." % zone))
+            print("Send mode speed-- zone %d..." % zone)
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x04, 0x04, 0x00, 0x00, 0x00, zone, 0x00]))
 
@@ -418,7 +418,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send mode speed++ zone %d..." % zone))
+            print("Send mode speed++ zone %d..." % zone)
         self.send_command(bytearray([0x31, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x04, 0x03, 0x00, 0x00, 0x00, zone, 0x00]))
 
@@ -434,7 +434,7 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send link zone %d..." % zone))
+            print("Send link zone %d..." % zone)
         self.send_command(bytearray([0x3D, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x00, 0x00, 0x00, 0x00, 0x00, zone, 0x00]))
 
@@ -450,6 +450,6 @@ class MilightIBox:
             return
 
         if self.verbose:
-            print(("Send link zone %d..." % zone))
+            print("Send link zone %d..." % zone)
         self.send_command(bytearray([0x3E, 0x00, 0x00, self.get_lamp_type(bridge_lamp),
                                      0x00, 0x00, 0x00, 0x00, 0x00, zone, 0x00]))

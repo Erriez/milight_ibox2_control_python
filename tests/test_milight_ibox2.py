@@ -182,7 +182,7 @@ class TestMilightIBox(unittest.TestCase):
             ibox.send_white_light_on(_zone)
             ibox.send_brightness(75, _zone)
             ibox.send_color_temperature(4000, _zone)
-            print(("Is light %d on? y/[n]" % _zone))
+            print("Is light %d on? y/[n]" % _zone)
             self.assertEqual(input(), "y")
 
         ibox.disconnect()
