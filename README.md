@@ -1,12 +1,22 @@
 # milight_ibox2_control_python
-MiLight iBox2 Controller interface with Python by using UDP socket
 
-Official documentation Milight API: http://www.limitlessled.com/dev/
+Milight iBox2 Controller interface with Python3 by using UDP socket.
+  
+Official Milight products: https://www.milight.com/
+  
+iBox2 limitations:
+* Max 4-zones.
+* No password protection.
+* Plain UDP Ethernet communication.
 
-----------------------------------------------------------------------------------------------------
-                                  Milight iBox v6 protocol
-----------------------------------------------------------------------------------------------------
+Note: `Milight iBox2` product has been renamed to `Milight WiFi Box`. It is unclear if these
+products are fully compatible with each other. Please let me know by creating an issue or 
+pull-request.
 
+
+## Milight iBox v6 protocol
+
+```
 1. Send start session packet to iBox IP at UDP port 5987
 2. Get session ID1 and ID2 from response packet
 3. Send light command to iBox
@@ -111,16 +121,26 @@ Send command  (TX 22 Bytes, RX 8 Bytes):
      4A = 5512K  ~5500K
      57 = 6006K  ~6000K
      64 = 6500K  ~6500K (Cool White)
+```
 
-----------------------------------------------------------------------------------------------------
-Installation
-----------------------------------------------------------------------------------------------------
-$ python setup.py install
 
-----------------------------------------------------------------------------------------------------
-Usage
-----------------------------------------------------------------------------------------------------
+## Installation
 
+The project can be installed als package. It is recommended to create a `virtualenv` first:
+
+```bash
+# Create virtual environment. Make sure virtualenv is installed.
+$ virtualenv venv
+$ source venv/bin/activate
+
+# Install this project as package
+$ python3 setup.py install
+```
+
+
+## Usage
+
+```python
 import milight_ibox2
 
 # Create object
@@ -146,3 +166,17 @@ ibox.send_light_off(zone)
 
 # Disconnect
 ibox.connect()
+```
+
+
+## Run tests
+
+Each manual test asks confirmation from the user if the light responded correctly. 
+
+```bash
+# Start virtualenv first
+$ source venv/bin/activate
+
+# Run tests
+$ python3 tests/test_milight_ibox2.py
+```
