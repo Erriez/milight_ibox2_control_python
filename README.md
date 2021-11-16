@@ -193,3 +193,71 @@ $ source venv/bin/activate
 # Run tests
 $ python3 tests/test_milight_ibox2.py
 ```
+
+
+## iBox2 WiFi configuration
+
+### Factory reset
+
+To enter AP mode factory reset:
+* Connect USB power to the iBox2.
+* Hold down `RST` for 5 seconds, fast blink `Link` and `SYS` LED's for 2 seconds, then SYS LED blinks.
+
+Notes:
+* Press `RST` once short enters `Smart Link Mode` and is not used.
+* An iBox2 factory reset keeps synced lights, it resets WiFi configuration only, such as AP mode, password etc.
+
+### Connect iBox2 to WiFi AP (manual configuration)
+
+* Connect from smartphone/tablet/laptop/RaspberryPi WiFi to iBox WiFi `Milight3.0-XXXXXX`:
+
+![AP+STA mode](assets/ConnectiBox2WiFi.jpg)
+
+* Open a web browser and visit: http://admin:admin@10.10.100.254. (Username and password is `admin`)
+* Click Work Mode: `AP+STA mode` | `Save` | `Restart`:
+
+![AP+STA mode](assets/iBoxSettings01.jpg)
+
+* Click `STA` | `Scan` | Select you WiFi AP | `OK` | Enter WiFi password | `Save` | `Restart`:
+
+![AP+STA mode](assets/iBoxSettings02.jpg)
+
+* Click Account and enter a new iBox2 password:
+
+![AP+STA mode](assets/iBoxSettings03.jpg)
+
+* Keep default `Other Settings`:
+
+![AP+STA mode](assets/iBoxSettings04.jpg)
+
+* Click Work Mode: `STA mode` | `Save` | `Restart`. (This disables iBox2 external WiFi access)
+* Now the iBox2 can be accessed from internal network: `http://admin:admin@<IP or hostname>`
+
+### Mi-Light 3.0 Android App
+
+* Connect to WiFi with internet.
+* Open Android App store and search/install [Mi-Light 3.0](https://play.google.com/store/apps/details?id=com.irainxun.wifilight).
+* Click `Searching for device` and select `Mi-Light` device.
+* Now the App is ready to use.
+
+![Android MiLight 3.0 Screenshot](assets/MiLight3.0Screenshot.jpg)
+
+**Important notes:** 
+
+The Mi-Light 3.0 Android app asks for a wide range of permissions which looks like Chinese spyware:
+  * Location (WTF, not required!)
+  * Telephone status and ID (WTF, not required!)
+  * Pictures/media/files/directories (WTF, not required!)
+  * Storage (WTF, not required!)
+  * Camera (WTF, not required!)
+  * Information about device ID and conversations (WTF, not required!)
+  * WiFi access (Ok, that's required)
+
+There is no good reason to allow access to all privacy information above.
+
+**Security warning:**
+
+The internal iBox2 interface chip contains a standard WiFi to serial adapter `HF-LPB100` and stores the WiFi password in 
+**plain text**. 
+When the default password / `AP+STA mode` is set, an attacker can login and click 
+`STA Settings` | check: `Show passwords`.
