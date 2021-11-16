@@ -362,7 +362,7 @@ class MilightIBox:
             print("Send color temperature %dK zone %d..." % (color_temperature, zone))
 
         # Calculate color temperature byte
-        ct = (color_temperature - 2700) / ((6500-2700)/100) & 0xFF
+        ct = int((color_temperature - 2700) / ((6500-2700)/100)) & 0xFF
 
         self.send_command(bytearray([0x31, 0x00, 0x00, lamp_type,
                                      0x05, ct, 0x00, 0x00, 0x00, zone, 0x00]))
