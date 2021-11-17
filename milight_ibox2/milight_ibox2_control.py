@@ -11,7 +11,7 @@ class MilightIBox:
     WALLWASHER_TYPE = 0x07
     RGBWW_TYPE = 0x08  # Default lamp type for RGB/WW/CCT
 
-    def __init__(self, ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=False):
+    def __init__(self, ibox_ip='10.10.100.254', ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=False):
         """ Milight iBox2 constructor
         :param ibox_ip: IP address of the iBox2
         :param ibox_port: UDP port of the iBox2 (default 5987)
@@ -38,23 +38,30 @@ class MilightIBox:
         """ Open UDP socket
         :return: None
         """
-        if self.verbose:
-            print("Socket open...")
-        self.sock_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock_server.settimeout(self.sock_timeout)
-        self.ibox_connected = False
+        if not self.sock_server:
+            if self.verbose:
+                print("Socket open...")
 
-    def socket_send(self, data):
+            self.sock_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.sock_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.sock_server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            self.sock_server.settimeout(self.sock_timeout)
+            self.ibox_connected = False
+
+    def socket_send(self, data, broadcast=False):
         """ Send data to UDP socket
         :param data: bytearray
+        :param broadcast: Broadcast IP 255.255.255.255 or ibox IP
         :return: None
         """
         if self.verbose:
             self.print_bytearray(data, "  TX %d Bytes: " % len(data))
 
         try:
-            ibox_addr = (self.ibox_ip, self.ibox_port)
+            if broadcast:
+                ibox_addr = ('255.255.255.255', self.ibox_port)
+            else:
+                ibox_addr = (self.ibox_ip, self.ibox_port)
             self.sock_server.sendto(data, ibox_addr)
             time.sleep(0.075)
         except socket.timeout:
@@ -79,7 +86,7 @@ class MilightIBox:
         if self.verbose:
             self.print_bytearray(data, "  RX %d Bytes: " % len(data))
 
-        return data
+        return data, addr
 
     def socket_close(self):
         """ Close UDP socket
@@ -109,7 +116,49 @@ class MilightIBox:
     # ----------------------------------------------------------------------------------------------
     # Milight iBox2 functions
     # ----------------------------------------------------------------------------------------------
-    def connect(self):
+    def scan(self):
+        """ Scan and return all iBox2 devices in network
+        :return: List: [{'ip': '10.10.100.254', 'port': 5987, 'mac': 'F0:FE:6B:XX:XX:XX'}, ...]
+        """
+        found_ibox_devices = []
+        data = bytearray([0x13, 0x00, 0x00, 0x00, 0x0a, 0x03, 0x9b, 0x7f, 0x11, 0xf0, 0xfe, 0x6b, 0x3b, 0xdd, 0xd4])
+
+        self.socket_open()
+        self.socket_send(data, broadcast=True)
+
+        while 1:
+            try:
+                # Wait for UDP response from iBox
+                (data, (ibox_addr, ibox_port)) = self.sock_server.recvfrom(100)
+
+                if self.verbose:
+                    self.print_bytearray(data, "  RX %d Bytes: " % len(data))
+
+                # Convert received data to bytearray
+                rx_data = bytearray(data)
+            except socket.timeout:
+                # Timeout, no more devices replied
+                break
+            except Exception as ex:
+                print("Error: ", ex)
+                return
+
+            # Basic check returned data
+            if rx_data and len(rx_data) == 69 and rx_data[0] == 0x18:
+                ibox_mac = '{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}'.format(rx_data[6], rx_data[7], rx_data[8],
+                                                                              rx_data[9], rx_data[10], rx_data[11])
+                if ibox_port != (rx_data[49] << 8) | rx_data[50]:
+                    if self.verbose:
+                        print('Warning: Incorrect port received')
+                        return
+                else:
+                    device = {'ip': ibox_addr, 'port': ibox_port, 'mac': ibox_mac}
+                    if device not in found_ibox_devices:
+                        found_ibox_devices.append(device)
+
+        return found_ibox_devices
+
+    def connect(self, ibox_ip=None, ibox_port=None):
         """ iBox connect by sending start session and retrieve session ID1 and ID2
         :return: None
         """
@@ -122,6 +171,10 @@ class MilightIBox:
         # Fixed 7 Bytes start of session response
         resp_start_session = bytearray([0x28, 0x00, 0x00, 0x00, 0x11, 0x00, 0x02])
 
+        if ibox_ip:
+            self.ibox_ip = ibox_ip
+        if ibox_port:
+            self.ibox_port = ibox_port
         self.ibox_connected = False
         self.ibox_session_id1 = -1
         self.ibox_session_id2 = -1
@@ -135,18 +188,18 @@ class MilightIBox:
                 else:
                     print("TX retry %d..." % retry)
             self.socket_send(cmd_start_session)
-            data = self.socket_recv()
-            if data:
-                if len(data) != 22:
+            rx_data, (rx_addr, rx_port) = self.socket_recv()
+            if rx_data:
+                if len(rx_data) != 22:
                     print("Error: Incorrect response length")
                     continue
 
-                resp_header = data[0:7]
-                mac = data[7:13]
-                unknown1 = data[13:19]
-                session_id1 = data[19:20]
-                session_id2 = data[20:21]
-                unknown2 = data[21:22]
+                resp_header = rx_data[0:7]
+                mac = rx_data[7:13]
+                unknown1 = rx_data[13:19]
+                session_id1 = rx_data[19:20]
+                session_id2 = rx_data[20:21]
+                unknown2 = rx_data[21:22]
 
                 if self.verbose:
                     self.print_bytearray(resp_header, "    Response:    ")
@@ -214,17 +267,17 @@ class MilightIBox:
             self.ibox_seq &= 0xFF
 
             self.socket_send(cmd)
-            data = self.socket_recv()
-            if data:
-                if len(data) != 8:
+            rx_data, (rx_addr, rx_port) = self.socket_recv()
+            if rx_data:
+                if len(rx_data) != 8:
                     print("Error: Incorrect response length")
                     continue
 
-                if data[0:6] != bytearray([0x88, 0x00, 0x00, 0x00, 0x03, 0x00]):
+                if rx_data[0:6] != bytearray([0x88, 0x00, 0x00, 0x00, 0x03, 0x00]):
                     print("Error: Incorrect response header")
                     continue
 
-                if data[6] != send_seq:
+                if rx_data[6] != send_seq:
                     print("Error: Incorrect sequence response")
                     continue
 
