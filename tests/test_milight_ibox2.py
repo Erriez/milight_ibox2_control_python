@@ -46,7 +46,7 @@ class TestMilightIBox(unittest.TestCase):
         global ibox_ip, ibox_port
 
         print("Testing scan...")
-        ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries = ibox_retries,
+        ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
                            verbose=verbose)
         found_devices = ibox.scan()
         self.assertGreaterEqual(len(found_devices), 1)

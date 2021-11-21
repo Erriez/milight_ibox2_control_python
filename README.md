@@ -138,35 +138,47 @@ $ python3 tests/test_milight_ibox2.py
 4. Send light command to iBox
 
 ----------------------------------------------------------------------------------------------------
-Scan iBox2 devices: Send broadcast IP 255.255.255.255, port 5987 and 15 Bytes payload: 
-      +--------------+
-      |     0..14    |
- TX:  +--------------+
-      | SCAN_COMMAND |
-      +--------------+
+Scan all iBox2 devices: Send broadcast IP 255.255.255.255, port 5987 and fixed 41 Bytes payload: 
+      +---------+-------+
+      |  0..8   | 9..40 |
+ TX:  +---------+-------+
+      | COMMAND | ASCII |
+      +---------+-------+
 
-Each iBox2 replies with a response on device IP, port 5987 and 69 Bytes payload:
-      +----------+-------+---------+--------+---------+
-      |   0..5   | 6..11 | 12..48  | 49..50 | 51..68  |
- RX:  +----------+-------+---------+--------+---------+
-      | RESPONSE |  MAC  | UNKNOWN |  PORT  | UNKNOWN |
-      +----------+-------+---------+--------+---------+
+    COMMAND:  9 Bytes:  13 00 00 00 24 03 BC 56 02 
+    ASCII:   32 Bytes:  39 38 35 62 31 35 37 62     985b157b
+                        66 36 66 63 34 33 33 36     f6fc4336
+                        38 61 36 33 34 36 37 65     8a63467e
+                        61 33 62 31 39 64 30 64     a3b19d0d
 
- TX:
-    SCAN_COMMAND: 15 Bytes:
-                  13 00 00 00 0A 03 9B 7F 11 F0 FE 6B 3B DD D4
- 
- RX:
+Scan single iBox2 device with MAC address on the network: 
+      +---------+-------+
+      |   0..8  | 9..15 |
+ TX:  +---------+-------+
+      | COMMAND |  MAC  |
+      +---------+-------+
+
+    COMMAND:  9 Bytes:  13 00 00 00 0A 03 9B 7F 11
+    MAC:      6 Bytes:  F0 FE 6B XX XX XX
+
+Each iBox2 replies twice with a response on device IP, port 5987 and 69 Bytes payload:
+      +----------+-------+----------+--------+-----------+
+      |   0..5   | 6..11 |  12..48  | 49..50 |   51..68  |
+ RX:  +----------+-------+----------+--------+-----------+
+      | RESPONSE |  MAC  | UNKNOWN1 |  PORT  | UNKNOWN2 |
+      +----------+-------+----------+--------+-----------+
+
+ RX from iBox2:
     RESPONSE:  6 Bytes:  18 00 00 00 40 02
     MAC:       6 Bytes:  F0 FE 6B XX XX XX
-    UNKNOWN:  37 Bytes:  00 20
+    UNKNOWN1: 37 Bytes:  00 20
                          39 38 35 62 31 35 37 62     985b157b
                          66 36 66 63 34 33 33 36     f6fc4336
                          38 61 36 33 34 36 37 65     8a63467e
                          61 33 62 31 39 64 30 64     a3b19d0d
                          01 00 01
     PORT:      2 Bytes:  17 63                       5987 (decimal)
-    UNKONWN:  18 Bytes:  00 00 05 00 09 78 6C 69
+    UNKONWN2: 18 Bytes:  00 00 05 00 09 78 6C 69
                          6E 6B 5F 64 65 76 07 5B
                          CD 15
  
