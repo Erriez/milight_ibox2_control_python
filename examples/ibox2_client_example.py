@@ -108,7 +108,7 @@ def main():
                 time.sleep(1)
 
             print('Zone {} set white mode...'.format(ibox2.zone))
-            ibox2.white(color)
+            ibox2.white()
             time.sleep(1)
 
             for saturation in [127, 255]:
