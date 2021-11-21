@@ -41,7 +41,8 @@ API:
 import milight_ibox2
 
 # Create ibox2 object
-ibox2 = milight_ibox2.MilightIBox(ibox_ip="10.10.100.254", ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=False)
+ibox2 = milight_ibox2.MilightIBox(ibox_ip="10.10.100.254", ibox_port=5987, 
+                                  sock_timeout=2, tx_retries=5, verbose=False)
 
 # Scan devices
 found_devices = ibox2.scan()
