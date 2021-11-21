@@ -7,6 +7,7 @@ Python3 interface for the following Milight iBox2 Controller which can be used o
 Official Milight products: https://www.milight.com/
   
 iBox2 limitations:
+* This Python package and iBox2 must be executed on the same network.
 * Max 4-zones.
 * No password protection.
 * Plain UDP Ethernet communication.
@@ -138,32 +139,36 @@ $ python3 tests/test_milight_ibox2.py
 4. Send light command to iBox
 
 ----------------------------------------------------------------------------------------------------
-Scan all iBox2 devices: Send broadcast IP 255.255.255.255, port 5987 and fixed 41 Bytes payload: 
-      +---------+--------+----+-------+
-      |   0..5  |  6..7  | 8  | 9..40 |
- TX:  +---------+--------+----+-------+
-      | COMMAND | RANDOM | 02 | ASCII |
-      +---------+--------+----+-------+
+Detect all iBox2 devices: Send broadcast IP 255.255.255.255, port 5987 and 41 Bytes payload: 
+      +---------+--------+-------+-------+
+      |   0..5  |  6..7  |   8   | 9..40 |
+ TX:  +---------+--------+-------+-------+
+      | COMMAND | RANDOM | FIXED | ASCII |
+      +---------+--------+-------+-------+
 
     COMMAND:  9 Bytes:  13 00 00 00 24 03 
-    RANDOM:             XX XX
-    FIXED:              02 
+    RANDOM:   2 Bytes:  XX XX
+    FIXED:    1 Byte:   02 
     ASCII:   32 Bytes:  39 38 35 62 31 35 37 62     985b157b
                         66 36 66 63 34 33 33 36     f6fc4336
                         38 61 36 33 34 36 37 65     8a63467e
                         61 33 62 31 39 64 30 64     a3b19d0d
 
-Scan single iBox2 device with MAC address on the network: 
-      +---------+-------+
-      |   0..8  | 9..15 |
- TX:  +---------+-------+
-      | COMMAND |  MAC  |
-      +---------+-------+
+Detect single iBox2 device: Send broadcast IP 255.255.255.255, port 5987 and 15 Bytes payload: 
+      +---------+--------+-------+-------+
+      |   0..5  |  6..7  |   8   | 9..14 |
+ TX:  +---------+--------+-------+-------+
+      | COMMAND | RANDOM | FIXED |  MAC  |
+      +---------+--------+-------+-------+
 
-    COMMAND:  9 Bytes:  13 00 00 00 0A 03 9B 7F 11
+    COMMAND:  9 Bytes:  13 00 00 00 0A 03 
+    RANDOM:   2 Bytes:  XX XX
+    FIXED:    1 Byte:   11
     MAC:      6 Bytes:  F0 FE 6B XX XX XX
 
-Each iBox2 replies twice with a response on device IP, port 5987 and 69 Bytes payload:
+    Note: The TX RANDOM field changes on every power-cycle or restarting Android app.
+
+Each iBox2 replies on a device scan command on UDP port 5987 and 69 Bytes payload:
       +----------+-------+----------+--------+-----------+
       |   0..5   | 6..11 |  12..48  | 49..50 |   51..68  |
  RX:  +----------+-------+----------+--------+-----------+
