@@ -31,6 +31,9 @@ class MilightIBox:
         self.ibox_seq = 0
         self.verbose = verbose
 
+    def __del__(self):
+        self.socket_close()
+
     # ----------------------------------------------------------------------------------------------
     # Network sockets
     # ----------------------------------------------------------------------------------------------
@@ -65,28 +68,42 @@ class MilightIBox:
             self.sock_server.sendto(data, ibox_addr)
             time.sleep(0.075)
         except socket.timeout:
-            print("Error: TX timeout")
+            print("TX timeout")
         except Exception as ex:
             print("Error: ", ex)
 
     def socket_recv(self, bufsize=1024):
-        """ Receive synchronous data from UDP socket """
+        """ Receive synchronous data from UDP socket
+        param bufsize: Receive buffer size (default: 1024 Bytes)
+        return:
+            bytearray: data, (string: addr, int: port)
+            When a timeout or error occurs, it returns b(''), ('', -1)
+        """
+        data_bytes = bytearray()
+        addr = ''
+        port = -1
+
         try:
             # Wait for UDP response from iBox
-            (data, addr) = self.sock_server.recvfrom(bufsize)
-            # Convert received data to bytearray
-            data = bytearray(data)
+            data_bytes, (addr, port) = self.sock_server.recvfrom(bufsize)
+
+            # Check received data
+            if not data_bytes:
+                if self.verbose:
+                    print("  RX {}:{} None".format(addr, port))
+            else:
+                # Convert received data to bytearray
+                data_bytes = bytearray(data_bytes)
+
+                if self.verbose:
+                    self.print_bytearray(data_bytes, "  RX {}:{} {} Bytes: ".format(addr, port, len(data_bytes)))
         except socket.timeout:
-            print("Error: RX timeout")
-            return
+            if self.verbose:
+                print("RX timeout")
         except Exception as ex:
-            print("Error: ", ex)
-            return
+            print("Error: RX ", ex)
 
-        if self.verbose:
-            self.print_bytearray(data, "  RX %d Bytes: " % len(data))
-
-        return data, addr
+        return data_bytes, (addr, port)
 
     def socket_close(self):
         """ Close UDP socket
@@ -94,8 +111,10 @@ class MilightIBox:
         """
         if self.verbose:
             print("Socket close...")
-        self.sock_server.close()
-        self.sock_server = None
+
+        if self.sock_server:
+            self.sock_server.close()
+            self.sock_server = None
         self.ibox_connected = False
 
     # ----------------------------------------------------------------------------------------------
@@ -127,24 +146,15 @@ class MilightIBox:
         self.socket_send(data, broadcast=True)
 
         while 1:
-            try:
-                # Wait for UDP response from iBox
-                (data, (ibox_addr, ibox_port)) = self.sock_server.recvfrom(100)
+            # Wait for UDP response from iBox
+            rx_data, (ibox_addr, ibox_port) = self.socket_recv(100)
 
-                if self.verbose:
-                    self.print_bytearray(data, "  RX %d Bytes: " % len(data))
-
-                # Convert received data to bytearray
-                rx_data = bytearray(data)
-            except socket.timeout:
-                # Timeout, no more devices replied
+            # Check if data received, break on receive timeout
+            if not rx_data:
                 break
-            except Exception as ex:
-                print("Error: ", ex)
-                return
 
             # Basic check returned data
-            if rx_data and len(rx_data) == 69 and rx_data[0] == 0x18:
+            if len(rx_data) == 69 and rx_data[0] == 0x18:
                 ibox_mac = '{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}'.format(rx_data[6], rx_data[7], rx_data[8],
                                                                               rx_data[9], rx_data[10], rx_data[11])
                 if ibox_port != (rx_data[49] << 8) | rx_data[50]:
@@ -188,7 +198,7 @@ class MilightIBox:
                 else:
                     print("TX retry %d..." % retry)
             self.socket_send(cmd_start_session)
-            rx_data, (rx_addr, rx_port) = self.socket_recv()
+            rx_data = self.socket_recv()[0]
             if rx_data:
                 if len(rx_data) != 22:
                     print("Error: Incorrect response length")
@@ -267,21 +277,17 @@ class MilightIBox:
             self.ibox_seq &= 0xFF
 
             self.socket_send(cmd)
-            rx_data, (rx_addr, rx_port) = self.socket_recv()
+            rx_data = self.socket_recv()[0]
             if rx_data:
                 if len(rx_data) != 8:
                     print("Error: Incorrect response length")
-                    continue
-
-                if rx_data[0:6] != bytearray([0x88, 0x00, 0x00, 0x00, 0x03, 0x00]):
+                elif rx_data[0:6] != bytearray([0x88, 0x00, 0x00, 0x00, 0x03, 0x00]):
                     print("Error: Incorrect response header")
-                    continue
-
-                if rx_data[6] != send_seq:
+                elif rx_data[6] != send_seq:
                     print("Error: Incorrect sequence response")
-                    continue
-
-                break
+                else:
+                    # Response received
+                    break
 
     def send_light_on(self, zone, lamp_type=RGBWW_TYPE):
         """ Turn light on

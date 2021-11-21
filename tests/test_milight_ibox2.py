@@ -4,6 +4,7 @@ import unittest
 from milight_ibox2.milight_ibox2_control import MilightIBox
 
 
+# Start with default iBox2 IP address and port
 ibox_ip = "10.10.100.254"
 ibox_port = 5987
 ibox_timeout = 2
@@ -17,10 +18,27 @@ class TestMilightIBox(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_connect_disconnect(self):
+    def test01_scan(self):
+        global ibox_ip, ibox_port
+
+        print("Testing scan...")
+        ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries = ibox_retries,
+                           verbose=verbose)
+        found_devices = ibox.scan()
+        self.assertGreaterEqual(len(found_devices), 1)
+
+        ibox_ip = found_devices[0]['ip']
+        self.assertGreaterEqual(len(ibox_ip), 7)
+
+        ibox_port = found_devices[0]['port']
+        self.assertEqual(ibox_port, 5987)  # Always same USP port?
+
+        self.assertEqual(len(found_devices[0]['mac']), 17)
+
+    def test02_connect_disconnect(self):
         print("Testing connect/disconnect...")
 
-        ibox = MilightIBox(ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
+        ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
                            verbose=verbose)
         self.assertEqual(ibox.is_connected(), False)
         ibox.connect()
@@ -28,9 +46,10 @@ class TestMilightIBox(unittest.TestCase):
         ibox.disconnect()
         self.assertEqual(ibox.is_connected(), False)
 
-    def test_timeout(self):
+    def test03_timeout(self):
         print("Testing timeout...")
 
+        # Assuming IP address is not assigned to an iBox2
         ibox = MilightIBox(ibox_ip="192.168.0.1", ibox_port=ibox_port, sock_timeout=ibox_timeout,
                            tx_retries=ibox_retries, verbose=verbose)
         self.assertEqual(ibox.is_connected(), False)
@@ -38,10 +57,11 @@ class TestMilightIBox(unittest.TestCase):
         self.assertEqual(ibox.is_connected(), False)
         ibox.disconnect()
 
-    def test_light_on_off(self):
+    def test04_light_on_off(self):
         print("Testing on/off...")
-        ibox = MilightIBox(ibox_ip,
-                           ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries, verbose=verbose)
+
+        ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
+                           verbose=verbose)
         ibox.connect()
         ibox.send_light_on(zone)
         ibox.send_white_light_on(zone)
@@ -64,12 +84,13 @@ class TestMilightIBox(unittest.TestCase):
         self.assertEqual(input(), "y")
 
         ibox.disconnect()
+        self.assertEqual(ibox.is_connected(), False)
 
-    def test_light_brightness(self):
+    def test05_light_brightness(self):
         print("Testing brightness...")
 
-        ibox = MilightIBox(ibox_ip,
-                           ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries, verbose=verbose)
+        ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
+                           verbose=verbose)
         ibox.connect()
         ibox.send_light_on(zone)
         ibox.send_white_light_on(zone)
@@ -94,13 +115,11 @@ class TestMilightIBox(unittest.TestCase):
         print("Is brightness of all lights 50%? y/[n]")
         self.assertEqual(input(), "y")
 
-        ibox.disconnect()
-
-    def test_color_temperature(self):
+    def test06_color_temperature(self):
         print("Testing color temperature...")
 
-        ibox = MilightIBox(ibox_ip,
-                           ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries, verbose=verbose)
+        ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
+                           verbose=verbose)
         ibox.connect()
         ibox.send_light_on(zone)
         ibox.send_white_light_on(zone)
@@ -122,12 +141,10 @@ class TestMilightIBox(unittest.TestCase):
         print("Is color temperature of all lights 4000K? y/[n]")
         self.assertEqual(input(), "y")
 
-        ibox.disconnect()
-
-    def test_rgb(self):
+    def test07_rgb(self):
         print("Testing RGB...")
 
-        ibox = MilightIBox(ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
+        ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
                            verbose=verbose)
         ibox.connect()
         ibox.send_light_on(zone)
@@ -158,12 +175,10 @@ class TestMilightIBox(unittest.TestCase):
         print("Is saturation of all lights 0%? y/[n]")
         self.assertEqual(input(), "y")
 
-        ibox.disconnect()
-
-    def test_mode(self):
+    def test08_mode(self):
         print("Testing mode...")
 
-        ibox = MilightIBox(ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
+        ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
                            verbose=verbose)
         ibox.connect()
         ibox.send_light_on(zone)
@@ -177,10 +192,10 @@ class TestMilightIBox(unittest.TestCase):
         print("Is mode 9? y/[n]")
         self.assertEqual(input(), "y")
 
-    def test_zones(self):
+    def test09_zones(self):
         print("Testing zones...")
 
-        ibox = MilightIBox(ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
+        ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
                            verbose=verbose)
         ibox.connect()
 
@@ -195,8 +210,6 @@ class TestMilightIBox(unittest.TestCase):
             ibox.send_color_temperature(4000, _zone)
             print("Is light %d on? y/[n]" % _zone)
             self.assertEqual(input(), "y")
-
-        ibox.disconnect()
 
 
 if __name__ == '__main__':
