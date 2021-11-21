@@ -26,12 +26,11 @@
     Milight iBox2 example with Python3
 """
 
+import milight_ibox2
 import time
 
-from milight_ibox2.milight_ibox2_control import MilightIBox
-
 # Create iBox2 object
-ibox2 = MilightIBox(ibox_ip='10.10.100.154', ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=False)
+ibox2 = milight_ibox2.MilightIBox(ibox_ip='10.10.100.154', ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=False)
 
 # Scan for devices
 print('Scan MiLight iBox2 devices...')
