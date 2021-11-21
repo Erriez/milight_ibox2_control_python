@@ -68,6 +68,7 @@ def main():
 
             print('Zone {} on...'.format(ibox2.zone))
             ibox2.light_on()
+            time.sleep(1)
 
             print('Zone {} off...'.format(ibox2.zone))
             ibox2.light(on=False)
