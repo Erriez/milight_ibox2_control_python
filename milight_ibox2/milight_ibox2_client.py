@@ -25,6 +25,7 @@
     Controller with version 6 protocol over UDP sockets.
 """
 
+import random
 import socket
 import time
 
@@ -74,6 +75,7 @@ class MilightIBox:
         self._ibox_connected = False
         self._ibox_seq = 0
         self._zone = 0
+        self._rnd = int(random.random() * 0xFFFF)
         self._lamp_type = self.RGBWW_TYPE
         self._verbose = verbose
 
@@ -171,11 +173,17 @@ class MilightIBox:
         found_ibox_devices = []
 
         # Fixed 41 Bytes
-        scan_all_cmd = bytearray([0x13, 0x00, 0x00, 0x00, 0x24, 0x03, 0xBC, 0x56, 0x02,
+        scan_all_cmd = bytearray([0x13, 0x00, 0x00, 0x00, 0x24, 0x03,               # Command
+                                  0x00, 0x00,                                       # Random
+                                  0x02,                                             # Fixed
                                   0x39, 0x38, 0x35, 0x62, 0x31, 0x35, 0x37, 0x62,   # ASCII 985b157b
                                   0x66, 0x36, 0x66, 0x63, 0x34, 0x33, 0x33, 0x36,   # ASCII f6fc4336
                                   0x38, 0x61, 0x36, 0x33, 0x34, 0x36, 0x37, 0x65,   # ASCII 8a63467e
                                   0x61, 0x33, 0x62, 0x31, 0x39, 0x64, 0x30, 0x64])  # ASCII a3b19d0d
+
+        # Random field
+        scan_all_cmd[6] = self._rnd >> 8
+        scan_all_cmd[7] = self._rnd & 0xFF
 
         self._socket_open()
         self._socket_send(scan_all_cmd, broadcast=True)
