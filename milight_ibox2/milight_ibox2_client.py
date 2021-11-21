@@ -100,14 +100,15 @@ class MilightIBox:
         :param data: bytearray
         :param broadcast: Broadcast IP 255.255.255.255 or ibox IP
         """
-        if self._verbose:
-            _print_bytearray(data, "  TX {}:{} {} Bytes: ".format(self._ibox_ip, self._ibox_port, len(data)))
-
         try:
             if broadcast:
                 ibox_addr = ('255.255.255.255', self._ibox_port)
             else:
                 ibox_addr = (self._ibox_ip, self._ibox_port)
+
+            if self._verbose:
+                _print_bytearray(data, "  TX {}:{} {} Bytes: ".format(ibox_addr[0], ibox_addr[1], len(data)))
+
             self._sock_server.sendto(data, ibox_addr)
             time.sleep(0.075)
         except socket.timeout:
