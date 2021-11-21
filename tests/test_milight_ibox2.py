@@ -1,5 +1,29 @@
 #!/usr/bin/python
 
+"""
+    MIT License
+
+    Copyright (c) 2017-2020 Erriez
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+"""
+
 import unittest
 from milight_ibox2.milight_ibox2_control import MilightIBox
 
@@ -63,116 +87,132 @@ class TestMilightIBox(unittest.TestCase):
         ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
                            verbose=verbose)
         ibox.connect()
-        ibox.send_light_on(zone)
-        ibox.send_white_light_on(zone)
-        ibox.send_brightness(75, zone)
+        ibox.zone = zone
+        ibox.lamp_type = lamp_type
 
-        ibox.send_light_off(0)
-        print("Are all lights off? y/[n]")
+        ibox.light(on=True)
+        ibox.white()
+        ibox.brightness(75)
+
+        ibox.light_off()
+        print("Is zone {} off? y/[n]".format(zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_light_on(zone)
-        print("Are all lights on? y/[n]")
+        ibox.light_on()
+        print("Is zone {} on? y/[n]".format(zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_light_off(zone)
-        print("Are all lights off? y/[n]")
+        ibox.light_off()
+        print("Is zone {} off? y/[n]".format(zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_night_light_on(zone)
-        print("Are all lights in night light? y/[n]")
+        ibox.night()
+        print("Is zone {} night light? y/[n]".format(zone))
         self.assertEqual(input(), "y")
 
         ibox.disconnect()
         self.assertEqual(ibox.is_connected(), False)
 
-    def test05_light_brightness(self):
+    def test05_brightness(self):
         print("Testing brightness...")
 
         ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
                            verbose=verbose)
         ibox.connect()
-        ibox.send_light_on(zone)
-        ibox.send_white_light_on(zone)
+        ibox.zone = zone
+        ibox.lamp_type = lamp_type
 
-        ibox.send_brightness(1, zone)
-        print("Is brightness of all lights 1%? y/[n]")
+        ibox.light_on(zone)
+        ibox.white(zone)
+
+        ibox.brightness(1)
+        print("Is zone {} brightness 1%? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_brightness(25, zone)
-        print("Is brightness of all lights 25%? y/[n]")
+        ibox.brightness(25)
+        print("Is zone {} brightness 25%? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_brightness(100, zone)
-        print("Is brightness of all lights 100%? y/[n]")
+        ibox.brightness(100)
+        print("Is zone {} brightness 100%? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_brightness(75, zone)
-        print("Is brightness of all lights 75%? y/[n]")
+        ibox.brightness(75)
+        print("Is zone {} brightness 75%? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_brightness(50, zone)
-        print("Is brightness of all lights 50%? y/[n]")
+        ibox.brightness(50)
+        print("Is zone {} brightness 50%? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-    def test06_color_temperature(self):
+    def test06_temperature(self):
         print("Testing color temperature...")
 
         ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
                            verbose=verbose)
         ibox.connect()
-        ibox.send_light_on(zone)
-        ibox.send_white_light_on(zone)
-        ibox.send_brightness(75, zone)
+        ibox.zone = 0
+        ibox.lamp_type = lamp_type
 
-        ibox.send_color_temperature(2700, zone)
-        print("Is color temperature of all lights 2700K? y/[n]")
+        ibox.light_on()
+        ibox.white()
+        ibox.brightness(75)
+
+        ibox.temperature(2700)
+        print("Is zone {} temperature 2700K? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_color_temperature(6500, zone)
-        print("Is color temperature of all lights 6500K? y/[n]")
+        ibox.temperature(6500)
+        print("Is zone {} temperature 6500K? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_color_temperature(5500, zone)
-        print("Is color temperature of all lights 5500K? y/[n]")
+        ibox.temperature(5500)
+        print("Is zone {} temperature 5500K? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_color_temperature(4000, zone)
-        print("Is color temperature of all lights 4000K? y/[n]")
+        ibox.temperature(4000)
+        print("Is zone {} temperature 4000K? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-    def test07_rgb(self):
+    def test07_color(self):
         print("Testing RGB...")
 
         ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
                            verbose=verbose)
         ibox.connect()
-        ibox.send_light_on(zone)
-        ibox.send_brightness(75, zone)
-        ibox.send_saturation(0, zone)
+        ibox.zone = 0
+        ibox.lamp_type = lamp_type
 
-        ibox.send_rgb_color(0x10, zone)
-        print("Is RGB color of all lights red? y/[n]")
+        ibox.light_on()
+        ibox.brightness(75)
+        ibox.saturation(0)
+
+        ibox.color_raw(ibox.RGB_RED)
+        print("Is zone {} red? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_rgb_color(0x60, zone)
-        print("Is RGB color of all lights green? y/[n]")
+        ibox.color_raw(ibox.RGB_GREEN)
+        print("Is zone {} green? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_rgb_color(0xb0, zone)
-        print("Is RGB color of all lights blue? y/[n]")
+        ibox.color_raw(ibox.RGB_BLUE)
+        print("Is zone {} blue? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_saturation(100, zone)
-        print("Is saturation of all lights 100%? y/[n]")
+        ibox.saturation(100)
+        print("Is zone {} saturation 100%? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_saturation(50, zone)
-        print("Is saturation of all lights 50%? y/[n]")
+        ibox.saturation(50)
+        print("Is zone {} saturation 50%? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_saturation(0, zone)
-        print("Is saturation of all lights 0%? y/[n]")
+        ibox.saturation(0)
+        print("Is zone {} saturation 0%? y/[n]".format(ibox.zone))
+        self.assertEqual(input(), "y")
+
+        ibox.white()
+        print("Is zone {} white? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
     def test08_mode(self):
@@ -181,15 +221,18 @@ class TestMilightIBox(unittest.TestCase):
         ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
                            verbose=verbose)
         ibox.connect()
-        ibox.send_light_on(zone)
-        ibox.send_brightness(75, zone)
+        ibox.zone = zone
+        ibox.lamp_type = lamp_type
 
-        ibox.send_mode(1, zone)
-        print("Is mode 1? y/[n]")
+        ibox.light_on()
+        ibox.brightness(75)
+
+        ibox.mode(1)
+        print("Is zone {} mode 1? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
-        ibox.send_mode(9, zone)
-        print("Is mode 9? y/[n]")
+        ibox.mode(9)
+        print("Is zone {} mode 9? y/[n]".format(ibox.zone))
         self.assertEqual(input(), "y")
 
     def test09_zones(self):
@@ -198,17 +241,19 @@ class TestMilightIBox(unittest.TestCase):
         ibox = MilightIBox(ibox_ip=ibox_ip, ibox_port=ibox_port, sock_timeout=ibox_timeout, tx_retries=ibox_retries,
                            verbose=verbose)
         ibox.connect()
+        ibox.zone = zone
+        ibox.lamp_type = lamp_type
 
-        ibox.send_light_off(0)
-        print("Are all lights off? y/[n]")
+        ibox.light_off(0)
+        print("Is zone 0 off? y/[n]")
         self.assertEqual(input(), "y")
 
         for _zone in range(1, 5):
-            ibox.send_light_on(_zone)
-            ibox.send_white_light_on(_zone)
-            ibox.send_brightness(75, _zone)
-            ibox.send_color_temperature(4000, _zone)
-            print("Is light %d on? y/[n]" % _zone)
+            ibox.light_on()
+            ibox.white()
+            ibox.brightness(75)
+            ibox.temperature(4000)
+            print("Is zone {} on? y/[n]".format(ibox.zone))
             self.assertEqual(input(), "y")
 
 
