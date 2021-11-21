@@ -33,7 +33,9 @@ $ python3 setup.py install
 
 ## Usage
 
-Full example code: [examples/example.py](https://github.com/Erriez/milight_ibox2_control_python/blob/master/examples/examples.py)
+Full example code: [examples/example.py](https://github.com/Erriez/milight_ibox2_control_python/blob/master/examples/example.py)
+
+API:
 
 ```python
 from milight_ibox2.milight_ibox2_control import MilightIBox
@@ -41,43 +43,73 @@ from milight_ibox2.milight_ibox2_control import MilightIBox
 # Create ibox2 object
 ibox2 = MilightIBox(ibox_ip="10.10.100.254", ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=False)
 
-# Specify optional lamp types:
-#   LampType.BRIDGE_TYPE = 0x00
-#   LampType.WALLWASHER_TYPE = 0x07
-#   LampType.RGBWW_TYPE = 0x08  # Default lamp type for RGB/WW/CCT
-# Or specify a different lamp type number.
-lamp_type = MilightIBox.RGBWW_TYPE
-
-# Set zone: 0=all, 1..4
-zone = 0
-
 # Scan devices
 found_devices = ibox2.scan()
 print('Found iBox2 devices:')
 for device in found_devices:
     print('  {}:{} ({})'.format(device['ip'], device['port'], device['mac']))
 
+# Make sure to add a delay between the send commands
+for device in found_devices:
     # Connect
     ibox2.connect(ibox_ip=device['ip'], ibox_port=device['port'])
+
+    # Set lamp type for next commands:
+    #   ibox2.BRIDGE_TYPE = 0x00
+    #   ibox2.WALLWASHER_TYPE = 0x07
+    #   ibox2.RGBWW_TYPE = 0x08  # Default lamp type for RGB/WW/CCT
+    # Or specify a different lamp type number (0..255).
+    ibox2._lamp_type = ibox2.RGBWW_TYPE
+
+    # Set zone (zone 0=all, 1..4) for next commands
+    ibox2.zone = 1
     
-    # Send light on (zone 0=all, 1..4)
-    ibox2.send_light_on(zone, lamp_type)
-    
-    # Send white on
-    ibox2.send_white_light_on(zone, lamp_type)
-    
-    # Send brightness 75%
-    ibox2.send_brightness(75, zone, lamp_type)
-    
-    # Send color temperature 2700K
-    ibox2.send_color_temperature(2700, zone, lamp_type)
-    
+    # Each send function can optionally specify zone and lamp_type with function arguments
+    #   zone=0, lamp_type=ibox2.BRIDGE_TYPE
+
+    # Link/unlink light zone 1..4
+    ibox2.link()
+    ibox2.unlink()
+
+    # Send light on
+    ibox2.light_on()
+    ibox2.light(on=True)
+    ibox2.light(on=True, zone=1)
+
     # Send light off
-    ibox2.send_light_off(zone, lamp_type)
-    
+    ibox2.light_off()
+    ibox2.light(on=False)
+    ibox2.light(on=False, zone=1)
+
+    # Send white on
+    ibox2.white()
+
+    # Send brightness 0..255
+    ibox2.brightness(75)
+
+    # Send raw 8-bit RGB color 0..255, or color name:
+    #   ibox2.RGB_LIGHT_PURPLE,
+    #   ibox2.RGB_PURPLE,
+    #   ibox2.RGB_RED,
+    #   ibox2.RGB_ORANGE,
+    #   ibox2.RGB_YELLOW,
+    #   ibox2.RGB_LIGHT_GREEN,
+    #   ibox2.RGB_GREEN,
+    #   ibox2.RGB_LIGHT_BLUE,
+    #   ibox2.RGB_BLUE
+    ibox2.color_raw(ibox2.RGB_RED)
+
+    # Send color temperature 2700K..6500K
+    ibox2.temperature(2700)
+
+    # Send light mode 1..9
+    ibox2.mode(mode=1)
+    ibox2.mode_speed_increase()
+    ibox2.mode_speed_decrease()
+
     # Send nightlight
-    ibox2.send_night_light_on(zone, lamp_type)
-    
+    ibox2.night()
+
     # Disconnect
     ibox2.disconnect()
 ```
@@ -310,3 +342,29 @@ The internal iBox2 interface chip contains a standard WiFi to serial adapter `HF
 **plain text** HTTP connection. SSL is not supported.
 When the default password / `AP+STA mode` is set, an attacker can login and click 
 `STA Settings` | check: `Show passwords`.
+
+
+## API changes
+
+| Functions v1             | Functions v2        |
+|--------------------------|---------------------|
+| -                        | scan                |
+| send_light_on            | light(on=True)      |
+| send_light_on            | light_on            |
+| send_light_off           | light_off           |
+| send_night_light_on      | night               |
+| send_white_light_on      | white               |
+| send_rgb_color           | color_raw           |
+| send_saturation          | saturation          |
+| send_brightness          | brightness          |
+| send_color_temperature   | temperature         |
+| send_mode                | mode                |
+| send_mode_speed_decrease | mode_speed_decrease |
+| send_mode_speed_increase | mode_speed_increase |
+| send_link                | link                |
+| send_unlink              | unlink              |
+
+| Properties v1            | Properties v2       |
+|--------------------------|---------------------|
+| -                        | zone                |
+| -                        | light_type          |
