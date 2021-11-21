@@ -33,7 +33,7 @@ $ python3 setup.py install
 
 ## Usage
 
-Full example code: [examples/example.py](https://github.com/Erriez/milight_ibox2_control_python/blob/master/examples/example.py)
+Full example code: [examples/ibox2_client_example.py](https://github.com/Erriez/milight_ibox2_control_python/blob/master/examples/ibox2_client_example.py)
 
 API:
 
