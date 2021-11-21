@@ -1,28 +1,145 @@
-# milight_ibox2_control_python
+# Python3 MiLight iBox2 Control
 
-Milight iBox2 Controller interface with Python3 by using UDP socket.
-  
+Python3 interface for the following Milight iBox2 Controller which can be used offline without an internet connection:
+
+![AP+STA mode](assets/iBox2.png)
+
 Official Milight products: https://www.milight.com/
   
 iBox2 limitations:
 * Max 4-zones.
 * No password protection.
 * Plain UDP Ethernet communication.
+* HTTP only, no SSL connection
 
 Note: `Milight iBox2` product has been renamed to `Milight WiFi Box`. It is unclear if these
 products are fully compatible with each other. Please let me know by creating an issue or 
 pull-request.
 
 
+## Installation
+
+The project can be installed als package. It is recommended to create a `virtualenv` first:
+
+```bash
+# Create virtual environment. Make sure virtualenv is installed.
+$ virtualenv venv
+$ source venv/bin/activate
+
+# Install this project as package
+$ python3 setup.py install
+```
+
+
+## Usage
+
+Full example code: [examples/example.py](https://github.com/Erriez/milight_ibox2_control_python/blob/master/examples/examples.py)
+
+```python
+from milight_ibox2.milight_ibox2_control import MilightIBox
+
+# Create ibox2 object
+ibox2 = MilightIBox(ibox_ip="10.10.100.254", ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=False)
+
+# Specify optional lamp types:
+#   LampType.BRIDGE_TYPE = 0x00
+#   LampType.WALLWASHER_TYPE = 0x07
+#   LampType.RGBWW_TYPE = 0x08  # Default lamp type for RGB/WW/CCT
+# Or specify a different lamp type number.
+lamp_type = MilightIBox.RGBWW_TYPE
+
+# Set zone: 0=all, 1..4
+zone = 0
+
+# Scan devices
+found_devices = ibox2.scan()
+print('Found iBox2 devices:')
+for device in found_devices:
+    print('  {}:{} ({})'.format(device['ip'], device['port'], device['mac']))
+
+    # Connect
+    ibox2.connect(ibox_ip=device['ip'], ibox_port=device['port'])
+    
+    # Send light on (zone 0=all, 1..4)
+    ibox2.send_light_on(zone, lamp_type)
+    
+    # Send white on
+    ibox2.send_white_light_on(zone, lamp_type)
+    
+    # Send brightness 75%
+    ibox2.send_brightness(75, zone, lamp_type)
+    
+    # Send color temperature 2700K
+    ibox2.send_color_temperature(2700, zone, lamp_type)
+    
+    # Send light off
+    ibox2.send_light_off(zone, lamp_type)
+    
+    # Send nightlight
+    ibox2.send_night_light_on(zone, lamp_type)
+    
+    # Disconnect
+    ibox2.disconnect()
+```
+
+
+## Run tests
+
+Each manual test asks confirmation from the user if the light responded correctly. 
+
+```bash
+# Start virtualenv first
+$ source venv/bin/activate
+
+# Run tests
+$ python3 tests/test_milight_ibox2.py
+```
+
+
 ## Milight iBox v6 protocol
 
 ```
-1. Send start session packet to iBox IP at UDP port 5987
-2. Get session ID1 and ID2 from response packet
-3. Send light command to iBox
+1. Send scan broadcast command UDP port 5987 and wait for replies from all devices 
+2. Send start session packet to iBox IP at UDP port 5987
+3. Get session ID1 and ID2 from response packet
+4. Send light command to iBox
 
 ----------------------------------------------------------------------------------------------------
-Start session to retrieve session ID1 and ID2 (TX 22 Bytes, RX 22 Bytes):
+Scan iBox2 devices: Send broadcast IP 255.255.255.255, port 5987 and 15 Bytes payload: 
+      +--------------+
+      |     0..14    |
+ TX:  +--------------+
+      | SCAN_COMMAND |
+      +--------------+
+
+Each iBox2 replies with a response on device IP, port 5987 and 69 Bytes payload:
+      +----------+-------+---------+--------+---------+
+      |   0..5   | 6..11 | 12..48  | 49..50 | 51..68  |
+ RX:  +----------+-------+---------+--------+---------+
+      | RESPONSE |  MAC  | UNKNOWN |  PORT  | UNKNOWN |
+      +----------+-------+---------+--------+---------+
+
+ TX:
+    SCAN_COMMAND: 15 Bytes:
+                  13 00 00 00 0A 03 9B 7F 11 F0 FE 6B 3B DD D4
+ 
+ RX:
+    RESPONSE:  6 Bytes:  18 00 00 00 40 02
+    MAC:       6 Bytes:  F0 FE 6B XX XX XX
+    UNKNOWN:  37 Bytes:  00 20
+                         39 38 35 62 31 35 37 62     985b157b
+                         66 36 66 63 34 33 33 36     f6fc4336
+                         38 61 36 33 34 36 37 65     8a63467e
+                         61 33 62 31 39 64 30 64     a3b19d0d
+                         01 00 01
+    PORT:      2 Bytes:  17 63                       5987 (decimal)
+    UNKONWN:  18 Bytes:  00 00 05 00 09 78 6C 69
+                         6E 6B 5F 64 65 76 07 5B
+                         CD 15
+ 
+----------------------------------------------------------------------------------------------------
+Send start session command to iBox2 IP, UDP port 5987 to retrieve session ID1 and ID2.
+(TX 22 Bytes, RX 22 Bytes):
       +---------------+
       |     0..21     |
  TX:  +---------------+
@@ -124,77 +241,6 @@ Send command  (TX 22 Bytes, RX 8 Bytes):
 ```
 
 
-## Installation
-
-The project can be installed als package. It is recommended to create a `virtualenv` first:
-
-```bash
-# Create virtual environment. Make sure virtualenv is installed.
-$ virtualenv venv
-$ source venv/bin/activate
-
-# Install this project as package
-$ python3 setup.py install
-```
-
-
-## Usage
-
-```python
-from milight_ibox2.milight_ibox2_control import MilightIBox
-
-# Configure iBox IP address, for example:
-ibox_ip = "10.10.100.254"
-
-# Create object
-ibox = MilightIBox(ibox_ip, ibox_port=5987, sock_timeout=2, tx_retries=5, verbose=False)
-
-# Specify optional lamp types:
-#   LampType.BRIDGE_TYPE = 0x00
-#   LampType.WALLWASHER_TYPE = 0x07
-#   LampType.RGBWW_TYPE = 0x08  # Default lamp type for RGB/WW/CCT
-# Or specify a different lamp type number.
-lamp_type = MilightIBox.RGBWW_TYPE
-
-# Set zone: 0=all, 1..4
-zone = 0
-
-# Connect
-ibox.connect()
-
-# Send light on (zone 0=all, 1..4)
-ibox.send_light_on(zone, lamp_type)
-
-# Send white on
-ibox.send_white_light_on(zone, lamp_type)
-
-# Send brightness 75%
-ibox.send_brightness(75, zone, lamp_type)
-
-# Send color temperature 2700K
-ibox.send_color_temperature(2700, zone, lamp_type)
-
-# Send light off
-ibox.send_light_off(zone, lamp_type)
-
-# Disconnect
-ibox.disconnect()
-```
-
-
-## Run tests
-
-Each manual test asks confirmation from the user if the light responded correctly. 
-
-```bash
-# Start virtualenv first
-$ source venv/bin/activate
-
-# Run tests
-$ python3 tests/test_milight_ibox2.py
-```
-
-
 ## iBox2 WiFi configuration
 
 ### Factory reset
@@ -244,20 +290,23 @@ Notes:
 
 **Important notes:** 
 
-The Mi-Light 3.0 Android app asks for a wide range of permissions which looks like Chinese spyware:
-  * Location (WTF, not required!)
-  * Telephone status and ID (WTF, not required!)
-  * Pictures/media/files/directories (WTF, not required!)
-  * Storage (WTF, not required!)
-  * Camera (WTF, not required!)
-  * Information about device ID and conversations (WTF, not required!)
-  * WiFi access (Ok, that's required)
+The timer functionality in Mi-Light 3.0 Android app 2018 is broken and will never work. The iBox2 has no RTC.
 
-There is no good reason to allow access to all privacy information above.
+The Mi-Light 3.0 Android app 2018 asks for a wide range of unnecessary permissions:
+  * Block: Location
+  * Block: Telephone status and ID
+  * Block: Pictures/media/files/directories
+  * Block: Storage
+  * Block: Camera
+  * Block: Information about device ID and conversations
+  * Required: WiFi access
+
+There is no good reason to allow access to all privacy information above. The developer did not respond on customer 
+complains, see app reviews.
 
 **Security warning:**
 
 The internal iBox2 interface chip contains a standard WiFi to serial adapter `HF-LPB100` and stores the WiFi password in 
-**plain text**. 
+**plain text** HTTP connection. SSL is not supported.
 When the default password / `AP+STA mode` is set, an attacker can login and click 
 `STA Settings` | check: `Show passwords`.
