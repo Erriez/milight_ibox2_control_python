@@ -25,7 +25,7 @@
 """
 
 import unittest
-from milight_ibox2.milight_ibox2_control import MilightIBox
+from milight_ibox2 import *
 
 
 # Start with default iBox2 IP address and port
